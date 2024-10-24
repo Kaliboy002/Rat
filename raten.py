@@ -8,8 +8,8 @@ from colorama import Fore, Style, init
 
 init()  
 
-TOKEN = '7462042357:AAHu7hjnoiVFEIuAcVz2WlLFnRTMyXXTkO4' #توكن
-ADMIN_ID = 1124010798 # ايدي
+TOKEN = '7964758764:AAFZgE2Oa-xjp80TCK91bpQ9fZ39RJ6m6wg' #توكن
+ADMIN_ID = 7046488481 # ايدي
 bot = TeleBot(TOKEN)
 
 required_libraries = ['telebot', 'colorama']
